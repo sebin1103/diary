@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📔 나의 일기장</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+      background: #f5f0e8;
+      color: #3d2b1f;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    header h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: #5c3d2e;
+    }
+    header p {
+      margin-top: 6px;
+      font-size: 0.95rem;
+      color: #9e7b6b;
+    }
+
+    /* ── Card wrapper ── */
+    .card {
+      background: #fffdf7;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      padding: 32px;
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: 32px;
+    }
+
+    /* ── Editor ── */
+    .editor-header {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .editor-header label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #7a5c4a;
+    }
+    #diary-date {
+      border: 1.5px solid #e0d4c4;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      color: #3d2b1f;
+      background: #faf7f2;
+      outline: none;
+      cursor: pointer;
+    }
+    #diary-date:focus { border-color: #b07d5a; }
+
+    #mood-select {
+      border: 1.5px solid #e0d4c4;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      background: #faf7f2;
+      color: #3d2b1f;
+      outline: none;
+      cursor: pointer;
+    }
+    #mood-select:focus { border-color: #b07d5a; }
+
+    #diary-title {
+      width: 100%;
+      border: 1.5px solid #e0d4c4;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #3d2b1f;
+      background: #faf7f2;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    #diary-title:focus { border-color: #b07d5a; }
+    #diary-title::placeholder { color: #c4a98a; }
+
+    #diary-content {
+      width: 100%;
+      min-height: 160px;
+      border: 1.5px solid #e0d4c4;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: #3d2b1f;
+      background: #faf7f2;
+      resize: vertical;
+      outline: none;
+      font-family: inherit;
+    }
+    #diary-content:focus { border-color: #b07d5a; }
+    #diary-content::placeholder { color: #c4a98a; }
+
+    .btn-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .btn {
+      padding: 10px 24px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .1s, box-shadow .1s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary {
+      background: #7a5c4a;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(122,92,74,.3);
+    }
+    .btn-primary:hover { background: #5c3d2e; }
+    .btn-secondary {
+      background: #ede4d8;
+      color: #7a5c4a;
+    }
+    .btn-secondary:hover { background: #ddd0c0; }
+
+    /* ── Entries list ── */
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #7a5c4a;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title span.count {
+      background: #7a5c4a;
+      color: #fff;
+      font-size: 0.75rem;
+      border-radius: 999px;
+      padding: 1px 8px;
+    }
+
+    #entries-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .entry {
+      background: #faf7f2;
+      border: 1.5px solid #e8ddd0;
+      border-radius: 12px;
+      padding: 18px 20px;
+      position: relative;
+      transition: box-shadow .15s;
+    }
+    .entry:hover { box-shadow: 0 3px 14px rgba(0,0,0,.07); }
+
+    .entry-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .entry-mood {
+      font-size: 1.3rem;
+    }
+    .entry-date {
+      font-size: 0.78rem;
+      color: #b09080;
+    }
+    .entry-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #3d2b1f;
+      margin-bottom: 6px;
+    }
+    .entry-body {
+      font-size: 0.9rem;
+      color: #6e5040;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .entry-actions {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .entry:hover .entry-actions { opacity: 1; }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: background .1s;
+    }
+    .icon-btn:hover { background: #ede4d8; }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 40px 0;
+      color: #b09080;
+      font-size: 0.95rem;
+    }
+    .empty .emoji { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #5c3d2e;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,.18);
+      transition: transform .3s ease;
+      z-index: 999;
+      pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Search ── */
+    #search-input {
+      width: 100%;
+      border: 1.5px solid #e0d4c4;
+      border-radius: 10px;
+      padding: 10px 14px 10px 38px;
+      font-size: 0.9rem;
+      background: #faf7f2 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b09080' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 12px center no-repeat;
+      color: #3d2b1f;
+      outline: none;
+      margin-bottom: 16px;
+    }
+    #search-input:focus { border-color: #b07d5a; }
+    #search-input::placeholder { color: #c4a98a; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📔 나의 일기장</h1>
+    <p>오늘 하루를 기록해보세요</p>
+  </header>
+
+  <!-- Editor Card -->
+  <div class="card" id="editor-card">
+    <div class="editor-header">
+      <label for="diary-date">날짜</label>
+      <input type="date" id="diary-date" />
+      <label for="mood-select">기분</label>
+      <select id="mood-select">
+        <option value="😊">😊 좋음</option>
+        <option value="😐">😐 보통</option>
+        <option value="😢">😢 슬픔</option>
+        <option value="😡">😡 화남</option>
+        <option value="😴">😴 피곤</option>
+        <option value="🥰">🥰 설렘</option>
+        <option value="🤩">🤩 신남</option>
+      </select>
+    </div>
+    <input type="text" id="diary-title" placeholder="제목을 입력하세요" maxlength="80" />
+    <textarea id="diary-content" placeholder="오늘 있었던 일을 자유롭게 적어보세요..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="clearEditor()">초기화</button>
+      <button class="btn btn-primary" onclick="saveEntry()">저장하기 💾</button>
+    </div>
+  </div>
+
+  <!-- List Card -->
+  <div class="card">
+    <div class="section-title">
+      📖 일기 목록
+      <span class="count" id="count-badge">0</span>
+    </div>
+    <input type="text" id="search-input" placeholder="제목 또는 내용 검색..." oninput="renderEntries()" />
+    <div id="entries-list">
+      <div class="empty"><span class="emoji">🌱</span>아직 작성된 일기가 없어요.<br>첫 번째 일기를 남겨보세요!</div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    // ── State ──────────────────────────────────────────────
+    const STORAGE_KEY = 'diary_entries_v1';
+    let entries = [];
+    let editingId = null;
+
+    // ── Init ───────────────────────────────────────────────
+    function init() {
+      setTodayDate();
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) entries = JSON.parse(saved);
+      renderEntries();
+    }
+
+    function setTodayDate() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('diary-date').value = today;
+    }
+
+    // ── Save ───────────────────────────────────────────────
+    function saveEntry() {
+      const date    = document.getElementById('diary-date').value;
+      const mood    = document.getElementById('mood-select').value;
+      const title   = document.getElementById('diary-title').value.trim();
+      const content = document.getElementById('diary-content').value.trim();
+
+      if (!date)    return showToast('날짜를 선택해주세요.');
+      if (!title)   return showToast('제목을 입력해주세요.');
+      if (!content) return showToast('내용을 입력해주세요.');
+
+      if (editingId !== null) {
+        const idx = entries.findIndex(e => e.id === editingId);
+        if (idx !== -1) {
+          entries[idx] = { ...entries[idx], date, mood, title, content, updatedAt: Date.now() };
+        }
+        editingId = null;
+        showToast('일기가 수정되었어요! ✏️');
+      } else {
+        entries.unshift({ id: Date.now(), date, mood, title, content, createdAt: Date.now() });
+        showToast('일기가 저장되었어요! 🌿');
+      }
+
+      persist();
+      clearEditor();
+      renderEntries();
+    }
+
+    function clearEditor() {
+      editingId = null;
+      setTodayDate();
+      document.getElementById('mood-select').value = '😊';
+      document.getElementById('diary-title').value = '';
+      document.getElementById('diary-content').value = '';
+      document.getElementById('editor-card').querySelector('h2') &&
+        document.getElementById('editor-card').querySelector('.btn-primary').textContent === '수정 완료 ✏️'
+          && (document.getElementById('editor-card').querySelector('.btn-primary').textContent = '저장하기 💾');
+    }
+
+    // ── Persist ────────────────────────────────────────────
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+
+    // ── Render ─────────────────────────────────────────────
+    function renderEntries() {
+      const query = document.getElementById('search-input').value.toLowerCase();
+      const list = document.getElementById('entries-list');
+      const badge = document.getElementById('count-badge');
+
+      const filtered = entries.filter(e =>
+        e.title.toLowerCase().includes(query) ||
+        e.content.toLowerCase().includes(query)
+      );
+
+      badge.textContent = entries.length;
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty"><span class="emoji">${query ? '🔍' : '🌱'}</span>${
+          query ? '검색 결과가 없어요.' : '아직 작성된 일기가 없어요.<br>첫 번째 일기를 남겨보세요!'
+        }</div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(e => `
+        <div class="entry" id="entry-${e.id}">
+          <div class="entry-meta">
+            <span class="entry-mood">${e.mood}</span>
+            <span class="entry-date">${formatDate(e.date)}</span>
+          </div>
+          <div class="entry-title">${escHtml(e.title)}</div>
+          <div class="entry-body">${escHtml(e.content)}</div>
+          <div class="entry-actions">
+            <button class="icon-btn" title="수정" onclick="editEntry(${e.id})">✏️</button>
+            <button class="icon-btn" title="삭제" onclick="deleteEntry(${e.id})">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ── Edit ───────────────────────────────────────────────
+    function editEntry(id) {
+      const entry = entries.find(e => e.id === id);
+      if (!entry) return;
+      editingId = id;
+      document.getElementById('diary-date').value = entry.date;
+      document.getElementById('mood-select').value = entry.mood;
+      document.getElementById('diary-title').value = entry.title;
+      document.getElementById('diary-content').value = entry.content;
+      document.getElementById('editor-card').scrollIntoView({ behavior: 'smooth' });
+      document.querySelector('.btn-primary').textContent = '수정 완료 ✏️';
+    }
+
+    // ── Delete ─────────────────────────────────────────────
+    function deleteEntry(id) {
+      if (!confirm('이 일기를 삭제할까요?')) return;
+      entries = entries.filter(e => e.id !== id);
+      persist();
+      renderEntries();
+      showToast('일기가 삭제되었어요.');
+    }
+
+    // ── Helpers ────────────────────────────────────────────
+    function formatDate(dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      const days = ['일','월','화','수','목','금','토'];
+      return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+
+    init();
+  </script>
+</body>
+</html>
