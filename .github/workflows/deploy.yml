@@ -14,33 +14,19 @@ jobs:
     - name: Checkout source code
       uses: actions/checkout@v4
 
-    # 2. Node.js 설치 (React 빌드용)
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20' # 최신 LTS 버전 사용
-        cache: 'npm'       # npm 패키지 설치 속도 향상
-
-    # 3. 의존성 패키지 설치
-    - name: Install Dependencies
-      run: npm install
-
-    # 4. React 프로젝트 빌드 (HTML/CSS/JS 변환)
-    - name: Build
-      run: npm run build
-      # 설명: 이 명령어가 실행되면 './build' 폴더에 배포용 파일들이 생성됩니다.
-
-    # 5. AWS 자격 증명 설정 (Academy용 Session Token 포함)
+    # 2. AWS 자격 증명 설정 (Academy용 Session Token 포함)
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-        aws-region: us-east-1 # Academy 리전 (보통 us-east-1)
+        aws-region: us-east-1
 
-    # 6. S3로 배포 (빌드된 폴더만 업로드)
+    # 3. S3로 배포 (HTML 파일 바로 업로드, 빌드 불필요)
     - name: Deploy to S3
       run: |
-        # ./build 폴더의 내용을 S3로 동기화합니다.
-        aws s3 sync ./build s3://mybucket-20263567 --delete
+        aws s3 sync . s3://mybucket-20263567 \
+          --exclude ".git/*" \
+          --exclude ".github/*" \
+          --delete
